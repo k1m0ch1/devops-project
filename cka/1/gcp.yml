@@ -1,6 +1,7 @@
 plugin: gcp_compute
 projects:
-  - playground-s-11-008cd2fa
+  - playground-s-11-8fac1238
+  - playground-s-11-0faec205
 auth_kind: serviceaccount
 service_account_file: sa.json 
 zones:

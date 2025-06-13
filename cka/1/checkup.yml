@@ -45,3 +45,13 @@
         msg: "containerd service is not running!"
       when: "'containerd.service' not in ansible_facts.services or ansible_facts.services['containerd.service'].state != 'running'"
 
+    - name: Check if kubelet service is running
+      ansible.builtin.systemd:
+        name: kubelet
+      register: kubelet_status
+
+    - name: Fail if kubelet is not active
+      ansible.builtin.fail:
+        msg: "kubelet service is NOT running!"
+      when: kubelet_status.status.ActiveState != "active"
+
