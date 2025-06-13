@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Path to service account file
+KEY_FILE="sa.json"
+
+# Step 1: Activate the service account
+gcloud auth activate-service-account --key-file="$KEY_FILE"
+
+# Step 2: Extract client_email from JSON
+CLIENT_EMAIL=$(jq -r '.client_email' "$KEY_FILE")
+
+# Step 3: Extract project ID from email (after '@' and before '.iam')
+PROJECT_ID=$(echo "$CLIENT_EMAIL" | sed -E 's/.*@(.*)\.iam.*/\1/')
+
+# Step 4: Set gcloud project
+gcloud config set project "$PROJECT_ID"
+
+gcloud compute instances create "c1-cp1" --project="$PROJECT_ID" --zone=us-central1-a --machine-type=e2-standard-2 --image-family=ubuntu-2204-lts --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --tags=ubuntu
+
+gcloud compute instances create "c1-node1" --project="$PROJECT_ID" --zone=us-central1-a --machine-type=e2-standard-2 --image-family=ubuntu-2204-lts --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --tags=ubuntu
+
+gcloud compute instances create "c1-node2" --project="$PROJECT_ID" --zone=us-central1-a --machine-type=e2-standard-2 --image-family=ubuntu-2204-lts --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --tags=ubuntu
+
+gcloud compute instances create "c1-node3" --project="$PROJECT_ID" --zone=us-central1-a --machine-type=e2-standard-2 --image-family=ubuntu-2204-lts --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --tags=ubuntu
+
+# enforce to ssh 
+gcloud compute ssh c1-cp1 --command="uname -a"
+gcloud compute ssh c1-node1 --command="uname -a"
+gcloud compute ssh c1-node2 --command="uname -a"
+gcloud compute ssh c1-node3 --command="uname -a"

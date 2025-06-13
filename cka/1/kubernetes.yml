@@ -1,0 +1,62 @@
+---
+- name: Install Kubernetes components (kubeadm, kubelet, kubectl)
+  hosts: all
+  become: yes
+  vars:
+    k8s_version: "1.29.1-1.1"
+  tasks:
+
+    - name: Install required apt transport packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gpg
+        state: present
+
+    #- name: Download Kubernetes GPG key
+    #  get_url:
+    #    url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+    #    dest: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    #    mode: '0644'
+
+    #- name: Add Kubernetes apt repository
+    #  copy:
+    #    dest: /etc/apt/sources.list.d/kubernetes.list
+    #    content: |
+    #      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /
+
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+
+    - name: Install Kubernetes packages
+      apt:
+        name:
+          - "kubelet={{ k8s_version }}"
+          - "kubeadm={{ k8s_version }}"
+          - "kubectl={{ k8s_version }}"
+        state: present
+
+    - name: Hold Kubernetes packages
+      command: apt-mark hold kubelet kubeadm kubectl containerd
+
+    - name: Check status of kubelet service
+      command: systemctl is-enabled kubelet.service
+      register: kubelet_status
+      ignore_errors: true
+
+    - name: Show kubelet status
+      debug:
+        var: kubelet_status.stdout
+
+    - name: Check status of containerd service
+      command: systemctl is-enabled containerd.service
+      register: containerd_status
+      ignore_errors: true
+
+    - name: Show containerd status
+      debug:
+        var: containerd_status.stdout
+

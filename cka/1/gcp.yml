@@ -1,0 +1,17 @@
+plugin: gcp_compute
+projects:
+  - playground-s-11-008cd2fa
+auth_kind: serviceaccount
+service_account_file: sa.json 
+zones:
+  - us-central1-a
+hostnames:
+  - name
+compose:
+  ansible_host: networkInterfaces[0].accessConfigs[0].natIP
+groups:
+  zone: zone
+  labels: labels
+vars:
+  ansible_ssh_private_key_file: ~/.ssh/google_compute_engine
+

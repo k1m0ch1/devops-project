@@ -1,0 +1,18 @@
+---
+- name: Disable swap on GCP VMs
+  hosts: all 
+  become: yes
+  tasks:
+    - name: Disable swap immediately
+      command: swapoff -a
+
+    - name: Check if swap entry exists in /etc/fstab
+      command: grep -E '^\s*[^#]+\s+swap\s' /etc/fstab
+      register: swap_check
+      ignore_errors: true
+
+    - name: Fail if swap still exists in fstab
+      fail:
+        msg: "Swap still enabled in /etc/fstab"
+      when: swap_check.rc == 0
+

@@ -1,0 +1,47 @@
+---
+- name: System Checkup for Kubernetes prerequisites
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Check if swap is disabled (runtime)
+      command: swapon --summary
+      register: swap_status
+      changed_when: false
+
+    - name: Fail if swap is still enabled at runtime
+      fail:
+        msg: "Swap is still enabled at runtime!"
+      when: swap_status.stdout != ""
+
+    - name: Check if /etc/fstab has swap entry
+      command: grep -E '^\s*[^#]+\s+swap\s' /etc/fstab
+      register: fstab_swap_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Fail if swap is found in /etc/fstab
+      fail:
+        msg: "Swap is still configured in /etc/fstab!"
+      when: fstab_swap_check.rc == 0
+
+    - name: Check if containerd is installed
+      command: which containerd
+      register: containerd_path
+      changed_when: false
+      failed_when: containerd_path.rc != 0
+
+    - name: Check if containerd config has SystemdCgroup = true
+      command: grep 'SystemdCgroup = true' /etc/containerd/config.toml
+      register: cgroup_check
+      changed_when: false
+      failed_when: "'SystemdCgroup = true' not in cgroup_check.stdout"
+
+    - name: Check if containerd service is running
+      service_facts:
+
+    - name: Fail if containerd service is not running
+      fail:
+        msg: "containerd service is not running!"
+      when: "'containerd.service' not in ansible_facts.services or ansible_facts.services['containerd.service'].state != 'running'"
+
